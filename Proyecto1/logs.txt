@@ -1,0 +1,13 @@
+Unable to find image 'containerstack/alpine-stress:latest' locally
+latest: Pulling from containerstack/alpine-stress
+8cae0e1ac61c: Pulling fs layer
+3dc4a4b491ea: Pulling fs layer
+4e110affbd01: Pulling fs layer
+4e110affbd01: Download complete
+3dc4a4b491ea: Download complete
+8cae0e1ac61c: Download complete
+Digest: sha256:1774c86f789aa83a726d60c42573ce2af609f498a8cf5c41c76ede74d8dbde0f
+Status: Downloaded newer image for containerstack/alpine-stress:latest
+
+Run 'docker run --help' for more information
+Contenedor stress_1741592029_0IQfZI de tipo io iniciado.
