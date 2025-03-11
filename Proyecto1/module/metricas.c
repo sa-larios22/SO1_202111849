@@ -8,6 +8,9 @@
 #include <linux/timer.h>        // Para manejar timers
 #include <linux/jiffies.h>      // Para manejar jiffies (ticks del sistema)
 #include <linux/slab.h>         // Para asignación de memoria dinámica
+#include <linux/fs.h>           // Para leer archivos
+#include <linux/uaccess.h>      // Para copiar datos entre user-space y kernel-space
+#include <linux/delay.h>        // Para `msleep()`
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Sergio Larios");
@@ -15,6 +18,49 @@ MODULE_DESCRIPTION("Módulo para capturar métricas de memoria y contenedores en
 MODULE_VERSION("1.0");
 
 #define PROC_NAME "sysinfo_202111849"
+#define CPU_STAT_FILE "/proc/stat"
+
+static unsigned long prev_active = 0, prev_total = 0;
+
+static unsigned int get_cpu_usage(void) {
+    struct file *f;
+    char buf[256];
+    loff_t pos = 0;
+    ssize_t bytes_read;
+    unsigned long user, nice, system, idle, iowait, irq, softirq, steal;
+    unsigned long active, total;
+    unsigned int usage = 0;
+
+    f = filp_open(CPU_STAT_FILE, O_RDONLY, 0);
+    if (IS_ERR(f)) {
+        return 0;
+    }
+
+    bytes_read = kernel_read(f, buf, sizeof(buf) - 1, &pos);
+    filp_close(f, NULL);
+
+    if (bytes_read <= 0) {
+        return 0;
+    }
+
+    buf[bytes_read] = '\0';
+
+    if (sscanf(buf, "cpu %lu %lu %lu %lu %lu %lu %lu %lu", &user, &nice, &system, &idle, &iowait, &irq, &softirq, &steal) < 8) {
+        return 0;
+    }
+
+    active = user + nice + system + irq + softirq + steal;
+    total = active + idle + iowait;
+
+    if (prev_total > 0) {
+        usage = ((active - prev_active) * 100) / (total - prev_total);
+    }
+
+    prev_active = active;
+    prev_total = total;
+
+    return usage;
+}
 
 static int sysinfo_show(struct seq_file *m, void *v) {
     struct sysinfo si;
@@ -33,9 +79,12 @@ static int sysinfo_show(struct seq_file *m, void *v) {
     seq_printf(m, "    \"En_uso_KB\": %lu\n", usedram);
     seq_printf(m, "  },\n");
 
+    unsigned int cpu_usage = get_cpu_usage();  // Obtiene el uso actual de CPU
+
     seq_printf(m, "  \"CPU\": {\n");
-    seq_printf(m, "    \"Uso_Porcentaje\": 0\n");  // Placeholder, se debe obtener en user-space
+    seq_printf(m, "    \"Uso_Porcentaje\": %u\n", cpu_usage);
     seq_printf(m, "  },\n");
+    
 
     seq_printf(m, "  \"Contenedores\": [\n");
 

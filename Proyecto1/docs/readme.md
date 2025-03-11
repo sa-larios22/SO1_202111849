@@ -39,6 +39,11 @@ Adicionalmente se pueden ver los logs de la terminal con
 sudo dmesg | tail -20           # Muestra los últimos 20 mensajes de los logs
 ```
 
+Y se puede ver el contenido del archivo `/proc/sysinfo_202111849` con el comando
+```bash
+cat /proc/sysinfo_202111849 | jq .
+```
+
 ## Descargar un módulo de Kernel
 Si se quiere eliminar el módulo del Kernel, se ejecuta:
 
