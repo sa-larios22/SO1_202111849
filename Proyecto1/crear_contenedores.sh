@@ -24,16 +24,16 @@ for i in {1..10}; do
     # --timeout 60s finaliza el consumo a los 60 segundos
     case $tipo in
         "RAM")
-            docker run -d --rm --name $nombre containerstack/alpine-stress stress --vm 1 --vm-bytes 128M --timeout 60s
+            docker run -d --rm --name $nombre containerstack/alpine-stress stress --vm 1 --vm-bytes 128M --timeout 30s
             ;;
         "CPU")
-            docker run -d --rm --name $nombre containerstack/alpine-stress stress --cpu 1 --timeout 60s
+            docker run -d --rm --name $nombre containerstack/alpine-stress stress --cpu 1 --timeout 30s
             ;;
         "IO")
-            docker run -d --rm --name $nombre containerstack/alpine-stress stress --io 1 --timeout 60s
+            docker run -d --rm --name $nombre containerstack/alpine-stress stress --io 1 --timeout 30s
             ;;
         "DISK")
-            docker run -d --rm --name $nombre containerstack/alpine-stress stress --hdd 1 --hdd-bytes 256M --timeout 60s
+            docker run -d --rm --name $nombre containerstack/alpine-stress stress --hdd 1 --hdd-bytes 256M --timeout 30s
             ;;
     esac
 
