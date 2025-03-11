@@ -1,4 +1,4 @@
-obj-m += so_metrics.o
+obj-m += metricas.o
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
