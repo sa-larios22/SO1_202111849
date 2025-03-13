@@ -1,2 +1,0 @@
-* * * * * /home/sergio/Descargas/SO1_202111849/Proyecto1/crear_contenedores.sh >> /home/sergio/Descargas/SO1_202111849/Proyecto1/logs.txt 2>&1
-* * * * * sleep 30; /home/sergio/Descargas/SO1_202111849/Proyecto1/crear_contenedores.sh >> /home/sergio/Descargas/SO1_202111849/Proyecto1/logs.txt 2>&1
