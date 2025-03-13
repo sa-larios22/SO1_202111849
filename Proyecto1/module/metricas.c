@@ -90,9 +90,8 @@ static int sysinfo_show(struct seq_file *m, void *v) {
 
     int first = 1;  // Para controlar la coma en JSON
     for_each_process(task) {
-        cond_resched();  // Evita soft lockups
 
-        if (strstr(task->comm, "docker") || strstr(task->comm, "container") || strstr(task->comm, "stress")) {
+        if (strstr(task->comm, "docker") || strstr(task->comm, "container") || strstr(task->comm, "stress") != NULL) {
             struct mm_struct *mm;
             unsigned long rss = 0;
 
@@ -111,8 +110,73 @@ static int sysinfo_show(struct seq_file *m, void *v) {
             seq_printf(m, "      \"PID\": %d,\n", task->pid);
             seq_printf(m, "      \"Nombre\": \"%s\",\n", task->comm);
             seq_printf(m, "      \"Cmd\": \"%s\",\n", task->comm);
-            seq_printf(m, "      \"Memoria_KB\": %lu\n", rss / 1024);
+            seq_printf(m, "      \"Memoria_KB\": %lu,\n", rss / 1024);
+
+            unsigned long total_jiffies = jiffies;
+            unsigned long total_time = task->utime + task->stime;
+            unsigned long cpu_usage = ((total_time * 1000) / total_jiffies);
+            seq_printf(m, "      \"Uso_CPU_Porcentaje\": %lu,\n", cpu_usage);
+
+
+
+            mm = task->mm;
+            if (mm) {
+                // Start and end of the command line arguments
+                unsigned long arg_start = mm->arg_start;
+                unsigned long arg_end = mm->arg_end;
+
+                // Size of the command line arguments
+                unsigned long len = arg_end - arg_start;
+
+                // Buffer for the command line
+                char *command_line = kmalloc(len + 1, GFP_KERNEL);
+                if (command_line) {
+                    memset(command_line, 0, len + 1);
+
+                    // Read the command line arguments
+                    if (access_process_vm(task, arg_start, command_line, len, 0) > 0) {
+                        // Replace null characters with spaces
+                        for (unsigned long i = 0; i < len; i++) {
+                            if (command_line[i] == '\0') {
+                                command_line[i] = ' ';  // Replace null characters with spaces
+                            }
+                        }
+                        seq_printf(m, "      \"Comando\": \"%s\",\n", command_line);
+
+                        // Get the container ID
+                        char *id_ptr = strstr(command_line, "-id ");
+                        if (id_ptr) {
+                            id_ptr += 4;
+                            char *id_end = strpbrk(id_ptr, " \0");
+                            if (id_end) {
+                                *id_end = '\0';
+                            }
+                            seq_printf(m, "      \"ID_Contenedor\": \"%s\",\n", id_ptr);
+                        }
+                    }
+
+                    // Free the buffer
+                    kfree(command_line);
+                } else {
+                    seq_printf(m, "      \"Comando\": \"<fallo en asignación de memoria>\",\n");
+                }
+
+                seq_printf(m, "      \"RSS\": %lu,\n", rss / 1024);
+                seq_printf(m, "      \"vsz\": %lu,\n", mm->total_vm * PAGE_SIZE / 1024);
+
+                // Memory usage in percentage
+                unsigned long total_memory = si.totalram * si.mem_unit;
+                unsigned long mem_usage = ((100000 * rss) / total_memory)/ 100;
+
+                // transform mem_usage (07) to string and add a dot before the last character (0.7)
+                char mem_usage_str[10];
+                sprintf(mem_usage_str, "%lu.%lu", mem_usage / 100, mem_usage % 100);
+                seq_printf(m, "      \"Uso_Memoria_Porcentaje\": %s\n", mem_usage_str);
+            }
+
             seq_printf(m, "    }");
+        } else {
+            continue;
         }
     }
 
