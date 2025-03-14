@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  log_admin:
+    image: nginx # Puedes usar cualquier contenedor que administre logs o un contenedor como nginx para escuchar peticiones HTTP
+    container_name: contenedor_logs
+    ports:
+      - "8080:80"  # Abre el puerto 8080 para las peticiones HTTP
+    volumes:
+      - ./logs:/var/log/nginx  # O algún directorio para almacenar logs
+    networks:
+      - log_network
+
+networks:
+  log_network:
+    driver: bridge
