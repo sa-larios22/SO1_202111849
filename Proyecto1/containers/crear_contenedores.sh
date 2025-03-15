@@ -38,7 +38,7 @@ for i in {1..10}; do
             docker run -d --rm --name $nombre $imagen stress --io 1 --timeout 30s
             ;;
         "DISK")
-            docker run -d --rm --name $nombre $imagen stress --hdd 1 --hdd-bytes 64M --timeout 30s
+            docker run -d --rm --name $nombre $imagen stress --hdd 1 --hdd-bytes 16M --timeout 30s
             ;;
     esac
 
