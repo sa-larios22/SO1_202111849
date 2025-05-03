@@ -6,6 +6,8 @@ class ReadFile():
     def __init__(self):
         self.data = []    
     
+    # Load a random element from the list and remove it
+    # If the list is empty, return None
     def getData(self):
         size = len(self.data)
         if size > 0:
@@ -15,9 +17,10 @@ class ReadFile():
             print("No hay más datos para enviar.")
             return None
     
+    # Load the JSON file and parse it
     def loadFile(self):
         try:
-            with open("./traffic.json", "r", encoding="utf-8") as file:
+            with open("./traffic/generated/weatherData.json", "r", encoding="utf-8") as file:
                 self.data = json.loads(file.read())
         except Exception as e:
             print(f'Error: {e}')

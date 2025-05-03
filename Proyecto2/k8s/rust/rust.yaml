@@ -1,0 +1,24 @@
+# Versión de la API que define este recurso de tipo Deployment
+apiVersion: apps/v1  # Versión de la API de Kubernetes para el recurso Deployment
+kind: Deployment     # Tipo de recurso: Deployment (controla pods replicados)
+
+metadata: 
+  name: rust-api-deployment     # Nombre del deployment
+  namespace: so1_proyecto2      # Namespace donde se desplegará (debe existir previamente)
+
+spec:
+  replicas: 1                   # Número de réplicas (pods idénticos) deseadas
+  selector:
+    matchLabels:
+      app: rust-api             # Selecciona los pods con esta etiqueta
+  template:
+    metadata:
+      labels:
+        app: rust-api           # Etiqueta que se asignará a los pods creados (coincide con el selector)
+    spec:
+      containers:
+        - name: rust-api-container      # Nombre del contenedor dentro del pod
+          image: rust-api-image:latest  # Imagen Docker a usar
+          imagePullPolicy: Never        # Política de extracción: nunca la descargará, debe estar local
+          ports:
+            - containerPort: 8080       # Puerto expuesto por la aplicación en el contenedor
