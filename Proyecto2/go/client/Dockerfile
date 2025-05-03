@@ -1,5 +1,5 @@
 # Building the binary of the App
-FROM golang:1.19 AS build
+FROM golang:1.24.2 AS build
 
 WORKDIR /go/src
 
