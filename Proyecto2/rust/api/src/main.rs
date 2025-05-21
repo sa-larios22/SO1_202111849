@@ -1,17 +1,18 @@
-use actix_web::{post, App, HttpResponse, HttpServer, Responder, web};
-use serde::Deserialize;
+use actix_web::{post, get, App, HttpResponse, HttpServer, Responder, web};
+use serde::{Serialize, Deserialize,};
+use reqwest::Client;
 use std::env;
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct Tweet {
-    Description: String,
-    Country: String,
-    Weather: String,
+    description: String,
+    country: String,
+    weather: String,
 }
 
 #[get("/")]
 async fn get_status() -> impl Responder {
-    HttpResponse::Ok().body("OK")
+    HttpResponse::Ok().body("Estado del servidor de Rust: Activo")
 }
 
 #[post("/input")]
@@ -19,25 +20,49 @@ async fn receive_tweet(tweet: web::Json<Tweet>) -> impl Responder {
     // Imprime el tweet recibido
     println!(
         "Descripción: {}, País: {}, Clima: {}",
-        tweet.Description, tweet.Country, tweet.Weather
+        tweet.description, tweet.country, tweet.weather
     );
 
-    // Reenvío opcional al servicio en Go (puede ser gRPC o REST)
-    // if let Ok(go_api_url) = env::var("GO_API_URL") {
-    //     let client = reqwest::Client::new();
-    //     let _ = client.post(&go_api_url)
-    //         .json(&*tweet)
-    //         .send()
-    //         .await;
-    // }
+    // --------------------------------------------------
+    let client = Client::new();
 
-    HttpResponse::Ok().body("Tweet recibido")
+    // Reenvío al servicio en Go con una variable de entorno
+    let go_service_url = match env::var("GO_SERVICE_URL") {
+        Ok(url) => url,
+        Err(_) => {
+            println!("⚠️  GO_SERVICE_URL no definida, usando http://localhost:8081/input por defecto.");
+            "http://localhost:8081/input".to_string()
+        }
+    };
+
+    println!("Reenviando a {}", go_service_url);
+
+    let result = client.post(&go_service_url)
+        .json(&*tweet)
+        .send()
+        .await;
+
+    match result {
+        Ok(response) => {
+            if response.status().is_success() {
+                println!("Tweet reenviado exitosamente al servicio en Go");
+            } else {
+                println!("Fallo en el reenvío. Código HTTP: {}", response.status());
+            }
+        }
+        Err(err) => {
+            println!("Error al conectar con el servicio en Go:");
+            println!("{:#}", err);
+        }
+    }
+
+    HttpResponse::Ok().json(&*tweet)
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let port = 8080;
-    println!("🚀 Servidor Rust escuchando en http://0.0.0.0:{}", port);
+    println!("Servidor Rust escuchando en http://0.0.0.0:{}", port);
 
     // let cors = CorsOptions::default()
     //     .allowed_origins(AllowedOrigins::all())

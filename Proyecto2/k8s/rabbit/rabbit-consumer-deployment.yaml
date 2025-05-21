@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq-consumer
+  namespace: weather-tweets
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq-consumer
+  template:
+    metadata:
+      labels:
+        app: rabbitmq-consumer
+    spec:
+      containers:
+        - name: consumer
+          image: sergiolarios/rabbit-consumer:latest
+          env:
+            - name: RABBITMQ_HOST
+              value: amqp://user:Gh62vf3qHqIzFoI3@rabbitmq.weather-tweets.svc.cluster.local:5672/

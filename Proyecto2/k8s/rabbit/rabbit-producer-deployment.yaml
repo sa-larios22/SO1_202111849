@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq-producer
+  namespace: weather-tweets
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq-producer
+  template:
+    metadata:
+      labels:
+        app: rabbitmq-producer
+    spec:
+      containers:
+        - name: producer
+          image: sergiolarios/rabbit-producer:latest
+          ports:
+            - containerPort: 50052
+          env:
+            - name: RABBITMQ_HOST
+              value: rabbitmq.default.svc.cluster.local
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-producer
+spec:
+  selector:
+    app: rabbitmq-producer
+  ports:
+    - port: 50052
+      targetPort: 50052

@@ -1,22 +1,13 @@
-# Building the binary of the App
-FROM golang:1.24.2 AS build
-
-WORKDIR /go/src
-
-COPY . .
-
-RUN go mod download
-
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o app .
-
-FROM alpine:latest as release
+FROM golang:1.24.2 AS builder
 
 WORKDIR /app
+COPY . .
+RUN go mod tidy
+RUN CGO_ENABLED=0 GOOS=linux go build -o app
 
-COPY --from=build /go/src/.env ./.env
-
-COPY --from=build /go/src/app .
-
-EXPOSE 3001
-
-ENTRYPOINT ["./app"]
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY --from=builder /app/app .
+EXPOSE 8081
+CMD ["./app"]

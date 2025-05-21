@@ -1,12 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: climate-server
-  namespace: proyecto2
+  name: producer
+  namespace: weather-tweets
 spec:
   selector:
-    app: climate-server
+    app: kafka-producer
   ports:
     - protocol: TCP
       port: 50051
       targetPort: 50051
+  type: ClusterIP

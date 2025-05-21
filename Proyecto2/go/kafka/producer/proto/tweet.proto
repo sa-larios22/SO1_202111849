@@ -4,10 +4,6 @@ package tweet;
 
 option go_package = "/";
 
-service TweetService {
-  rpc SendTweet (TweetRequest) returns (TweetResponse);
-}
-
 message TweetRequest {
   string description = 1;
   string country = 2;
@@ -16,4 +12,8 @@ message TweetRequest {
 
 message TweetResponse {
   string status = 1;
+}
+
+service TweetService {
+  rpc SendTweet (TweetRequest) returns (TweetResponse);
 }
